@@ -20,6 +20,8 @@ app.use(express.static("public"));
 //   }),
 // );
 
+// Routes
+
 app.get("/", (req, res) => {
   res.send("Hello World");
 });
