@@ -33,3 +33,6 @@ const toUserResponse = (user) => ({
   payoutDetails: user.payoutDetails,
   stripeConfigured: Boolean(process.env.STRIPE_SECRET_KEY),
 });
+
+// Register User
+export const registerUser = asyncHandler(async (req, res) => {});
