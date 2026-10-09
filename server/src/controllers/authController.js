@@ -173,7 +173,99 @@ export const verifyRegistrationEmailOtp = asyncHandler(async (req, res) => {
 });
 
 // Login User
-export const loginUser = asyncHandler(async (req, res) => {});
+export const loginUser = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    res.status(400);
+    throw new Error("Email and password are required");
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const user = await User.findOne({ email: normalizedEmail });
+
+  if (!user) {
+    res.status(400);
+    throw new Error("Invalid email or password");
+  }
+
+  const isMatch = await bcrypt.compare(password, user.password);
+
+  if (!isMatch) {
+    res.status(400);
+    throw new Error("Invalid email or password");
+  }
+
+  const token = createToken(user._id);
+
+  res.status(200).json({
+    message: "User logged in successfully",
+    user: toUserResponse(user),
+    token,
+  });
+});
+
+// Get Current User
+export const getCurrentUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user.id).select("-password");
+
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  res.status(200).json({
+    user: toUserResponse(user),
+  });
+});
+
+// Update User Profile
+export const updateUserProfile = asyncHandler(async (req, res) => {
+  const {
+    businessName,
+    businessDescription,
+    timezone,
+    brandTheme,
+    brandAccent,
+  } = req.body;
+
+  const user = await User.findById(req.user.id);
+
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  if (businessName !== undefined) user.businessName = businessName;
+  if (businessDescription !== undefined)
+    user.businessDescription = businessDescription;
+  if (timezone !== undefined) user.timezone = timezone;
+  if (brandTheme !== undefined) user.brandTheme = brandTheme;
+  if (brandAccent !== undefined) user.brandAccent = brandAccent;
+
+  const baseSlug = slugify(user.businessName || user.name) || "business";
+  let finalSlug = baseSlug;
+  let counter = 1;
+
+  while (await User.findOne({ slug: finalSlug, _id: { $ne: user._id } })) {
+    finalSlug = `${baseSlug}-${counter}`;
+    counter += 1;
+  }
+
+  user.slug = finalSlug;
+
+  await user.save();
+
+  res.status(200).json({
+    message: "Profile updated successfully",
+    user: toUserResponse(user),
+  });
+});
 
 // Logout User
-export const logoutUser = asyncHandler(async (req, res) => {});
+export const logoutUser = asyncHandler(async (req, res) => {
+  res.status(200).json({
+    message: "User logged out successfully",
+  });
+});
