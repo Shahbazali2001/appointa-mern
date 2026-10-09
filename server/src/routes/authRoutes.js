@@ -14,6 +14,7 @@ import protectMiddleware from "../middleware/authMiddleware.js";
 
 const authRouter = express.Router();
 
+// Prefix: "/api/v1/auth"
 authRouter.post("/register", registerUser);
 authRouter.post("/register/request-otp", requestRegistrationEmailOtp);
 authRouter.post("/register/verify-otp", verifyRegistrationEmailOtp);
