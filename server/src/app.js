@@ -8,7 +8,7 @@ import ApiError from "./utils/apiError.js";
 import { errorHandler } from "./middleware/errorMiddleware.js";
 
 // Route Imports
-// import authRoutes from "./routes/authRoutes.js";
+import authRouter from "./routes/authRoutes.js";
 
 // Initialize App
 const app = express();
@@ -42,10 +42,9 @@ app.get("/health", (req, res) => {
 });
 
 // 3. API Routes
-// app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/auth", authRouter);
 
 // 4. 404 Not Found Handler (Unmatched Routes)
-
 app.use((req, res, next) => {
   next(new ApiError(404, `Route not found: ${req.originalUrl}`));
 });
