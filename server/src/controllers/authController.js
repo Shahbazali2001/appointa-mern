@@ -10,6 +10,7 @@ import slugify from "../utils/slug.js";
 
 // Async Handler Import
 import asyncHandler from "../utils/asyncHandler.js";
+import { logou } from "./authController";
 
 //Create Token
 const createToken = (id) => {
@@ -104,3 +105,75 @@ export const registerUser = asyncHandler(async (req, res) => {
     token,
   });
 });
+
+// Request Registration OTP
+
+export const requestRegistrationEmailOtp = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    res.status(400);
+    throw new Error("Email is required");
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const userExists = await User.findOne({ email: normalizedEmail });
+
+  if (userExists) {
+    res.status(400);
+    throw new Error("User already exists");
+  }
+
+  const otpRequestResult = await requestEmailOtp({
+    email: normalizedEmail,
+    purpose: "registration",
+  });
+
+  res.status(200).json({
+    message: "OTP sent successfully",
+    ...otpRequestResult,
+  });
+});
+
+// Verify Registration OTP
+export const verifyRegistrationEmailOtp = asyncHandler(async (req, res) => {
+  const { email, emailOtp } = req.body;
+
+  if (!email || !emailOtp) {
+    res.status(400);
+    throw new Error("Email and code are required");
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const userExists = await User.findOne({ email: normalizedEmail });
+
+  if (userExists) {
+    res.status(400);
+    throw new Error("User already exists");
+  }
+
+  const otpVerificationResult = await verifyEmailOtp({
+    email: normalizedEmail,
+    purpose: "registration",
+    code: emailOtp,
+    consume: true,
+  });
+
+  if (!otpVerificationResult.verified) {
+    res.status(400);
+    throw new Error("Invalid or expired OTP");
+  }
+
+  res.status(200).json({
+    message: "OTP verified successfully",
+    email: normalizedEmail,
+  });
+});
+
+// Login User
+export const loginUser = asyncHandler(async (req, res) => {});
+
+// Logout User
+export const logoutUser = asyncHandler(async (req, res) => {});
